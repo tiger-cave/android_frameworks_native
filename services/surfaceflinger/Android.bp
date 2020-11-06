@@ -46,6 +46,7 @@ cc_defaults {
         "librenderengine_deps",
         "libtimestats_deps",
         "libsurfaceflinger_common_deps",
+        "disable_postrender_cleanup_defaults",
         "surfaceflinger_defaults",
         "libsurfaceflinger_proto_deps",
     ],
