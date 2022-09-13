@@ -3361,7 +3361,9 @@ void SurfaceFlinger::onCompositionPresented(PhysicalDisplayId pacesetterId,
     }
 
     if (hasPacesetterDisplay && !pacesetterDisplay->isPoweredOn()) {
+#ifndef DISABLE_POSTRENDER_CLEANUP
         getRenderEngine().cleanupPostRender();
+#endif
         return;
     }
 
