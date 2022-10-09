@@ -1315,6 +1315,7 @@ private:
 
     bool mLayerCachingEnabled = false;
     bool mBackpressureGpuComposition = false;
+    bool mPropagateBackpressure = true;
 
     LayerTracing mLayerTracing;
     std::optional<TransactionTracing> mTransactionTracing;
