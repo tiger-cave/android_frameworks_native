@@ -1321,6 +1321,7 @@ private:
     bool mDebugDisableHWC = false;
     bool mDebugDisableTransformHint = false;
     bool mLayerCachingEnabled = false;
+    bool mPropagateBackpressure = true;
     volatile nsecs_t mDebugInTransaction = 0;
     bool mForceFullDamage = false;
     bool mPropagateBackpressureClientComposition = false;
