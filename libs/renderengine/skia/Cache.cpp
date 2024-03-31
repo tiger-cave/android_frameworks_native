@@ -17,7 +17,6 @@
 #include "AutoBackendTexture.h"
 #include "SkiaRenderEngine.h"
 #include "android-base/unique_fd.h"
-#include "cutils/properties.h"
 #include "renderengine/DisplaySettings.h"
 #include "renderengine/LayerSettings.h"
 #include "renderengine/impl/ExternalTexture.h"

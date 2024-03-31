@@ -1081,10 +1081,9 @@ void SurfaceFlinger::init() FTL_FAKE_GUARD(kMainThreadContext) {
             config.cacheClippedDimmedImageLayers = base::
                     GetBoolProperty("debug.sf.prime_shader_cache.clipped_dimmed_image_layers"s,
                                     true);
-            // ro.surface_flinger.prime_chader_cache.ultrahdr exists as a previous ro property
-            // which we maintain for backwards compatibility.
-            config.cacheUltraHDR =
-                    base::GetBoolProperty("ro.surface_flinger.prime_shader_cache.ultrahdr"s, false);
+            // Prime the HDR shaders unconditionally. Legacy GLES drivers cannot afford the
+            // first-frame shader compilation that the newer property-gated path permits.
+            config.cacheUltraHDR = true;
             config.cacheEdgeExtension =
                     base::GetBoolProperty("debug.sf.prime_shader_cache.edge_extension_shader"s,
                                           true);
