@@ -59,8 +59,8 @@ public:
     ~GLESRenderEngine() override EXCLUDES(mRenderingMutex);
 
     std::future<void> primeCache() override;
-    void genTextures(size_t count, uint32_t* names);
-    void deleteTextures(size_t count, uint32_t const* names);
+    void genTextures(size_t count, uint32_t* names) override;
+    void deleteTextures(size_t count, uint32_t const* names) override;
     bool isProtected() const { return mInProtectedContext; }
     bool supportsProtectedContent() const override;
     void useProtectedContext(bool useProtectedContext) override;
@@ -107,7 +107,7 @@ protected:
                             const DisplaySettings& display,
                             const std::vector<LayerSettings>& layers,
                             const std::shared_ptr<ExternalTexture>& buffer,
-                            const bool useFramebufferCache, base::unique_fd&& bufferFence);
+                            const bool useFramebufferCache, base::unique_fd&& bufferFence) override;
 
 private:
     friend class BindNativeBufferAsFramebuffer;
