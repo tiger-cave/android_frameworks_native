@@ -23,6 +23,8 @@
 #include <math/mat4.h>
 #include <renderengine/DisplaySettings.h>
 #include <renderengine/ExternalTexture.h>
+#include <renderengine/Framebuffer.h>
+#include <renderengine/Image.h>
 #include <renderengine/LayerSettings.h>
 #include <stdint.h>
 #include <sys/types.h>
@@ -265,6 +267,8 @@ public:
     // being drawn, then the implementation is free to silently ignore this call.
     virtual void cleanupPostRender() = 0;
 
+    virtual void cleanFramebufferCache() = 0;
+
     // Returns the priority this context was actually created with. Note: this
     // may not be the same as specified at context creation time, due to
     // implementation limits on the number of contexts that can be created at a
@@ -284,6 +288,10 @@ public:
     // TODO(b/180767535): This is only implemented to allow for backend-specific behavior, which
     // we should not allow in general, so remove this.
     bool isThreaded() const { return mThreaded == Threaded::Yes; }
+
+    // Legacy GLES keeps writable output buffers in its framebuffer cache instead of the common
+    // external-texture cache. Threaded RenderEngine forwards this query to its leaf backend.
+    virtual bool isLegacyGles() const { return false; }
 
     static void validateInputBufferUsage(const sp<GraphicBuffer>&);
     static void validateOutputBufferUsage(const sp<GraphicBuffer>&);
