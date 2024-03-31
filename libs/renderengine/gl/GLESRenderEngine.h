@@ -58,9 +58,9 @@ public:
                      EGLSurface protectedStub);
     ~GLESRenderEngine() override EXCLUDES(mRenderingMutex);
 
-    std::future<void> primeCache() override;
-    void genTextures(size_t count, uint32_t* names);
-    void deleteTextures(size_t count, uint32_t const* names);
+    std::future<void> primeCache(PrimeCacheConfig) override;
+    void genTextures(size_t count, uint32_t* names) override;
+    void deleteTextures(size_t count, uint32_t const* names) override;
     bool isProtected() const { return mInProtectedContext; }
     bool supportsProtectedContent() const override;
     void useProtectedContext(bool useProtectedContext) override;
@@ -68,6 +68,7 @@ public:
     int getContextPriority() override;
     bool supportsBackgroundBlur() override { return mBlurFilter != nullptr; }
     void onActiveDisplaySizeChanged(ui::Size size) override {}
+    bool isLegacyGles() const override { return true; }
 
     EGLDisplay getEGLDisplay() const { return mEGLDisplay; }
     // Creates an output image for rendering to
@@ -107,7 +108,14 @@ protected:
                             const DisplaySettings& display,
                             const std::vector<LayerSettings>& layers,
                             const std::shared_ptr<ExternalTexture>& buffer,
-                            const bool useFramebufferCache, base::unique_fd&& bufferFence);
+                            const bool useFramebufferCache, base::unique_fd&& bufferFence) override;
+    void drawGainmapInternal(const std::shared_ptr<std::promise<FenceResult>>&& resultPromise,
+                             const std::shared_ptr<ExternalTexture>& sdr,
+                             base::borrowed_fd&& sdrFence,
+                             const std::shared_ptr<ExternalTexture>& hdr,
+                             base::borrowed_fd&& hdrFence, float hdrSdrRatio,
+                             ui::Dataspace dataspace,
+                             const std::shared_ptr<ExternalTexture>& gainmap) override;
 
 private:
     friend class BindNativeBufferAsFramebuffer;

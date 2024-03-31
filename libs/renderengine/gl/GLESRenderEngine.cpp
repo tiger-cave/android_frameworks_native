@@ -513,10 +513,21 @@ Framebuffer* GLESRenderEngine::getFramebufferForDrawing() {
     return mDrawingBuffer.get();
 }
 
-std::future<void> GLESRenderEngine::primeCache() {
+std::future<void> GLESRenderEngine::primeCache(PrimeCacheConfig /*config*/) {
     ProgramCache::getInstance().primeCache(mInProtectedContext ? mProtectedEGLContext : mEGLContext,
                                            mPrecacheToneMapperShaderOnly);
     return {};
+}
+
+void GLESRenderEngine::drawGainmapInternal(
+        const std::shared_ptr<std::promise<FenceResult>>&& resultPromise,
+        const std::shared_ptr<ExternalTexture>& /*sdr*/, base::borrowed_fd&& /*sdrFence*/,
+        const std::shared_ptr<ExternalTexture>& /*hdr*/, base::borrowed_fd&& /*hdrFence*/,
+        float /*hdrSdrRatio*/, ui::Dataspace /*dataspace*/,
+        const std::shared_ptr<ExternalTexture>& /*gainmap*/) {
+    // The legacy GLES backend predates gainmap generation. Keep the modern API available and
+    // report the unsupported operation instead of making the restored backend abstract.
+    resultPromise->set_value(base::unexpected(INVALID_OPERATION));
 }
 
 base::unique_fd GLESRenderEngine::flush() {

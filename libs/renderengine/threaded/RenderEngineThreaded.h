@@ -65,8 +65,10 @@ public:
                                          ui::Dataspace dataspace,
                                          const std::shared_ptr<ExternalTexture>& gainmap) override;
 
+    void cleanFramebufferCache() override;
     int getContextPriority() override;
     bool supportsBackgroundBlur() override;
+    bool isLegacyGles() const override;
     void onActiveDisplaySizeChanged(ui::Size size) override;
     std::optional<pid_t> getRenderEngineTid() const override;
     void setEnableTracing(bool tracingEnabled) override;

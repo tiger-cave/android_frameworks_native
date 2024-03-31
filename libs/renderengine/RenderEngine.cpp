@@ -27,7 +27,6 @@
 #include <com_android_graphics_surfaceflinger_flags.h>
 #include <cutils/properties.h>
 #include <log/log.h>
-
 // TODO: b/341728634 - Clean up conditional compilation.
 #if COM_ANDROID_GRAPHICS_SURFACEFLINGER_FLAGS(GRAPHITE_RENDERENGINE) || \
         COM_ANDROID_GRAPHICS_SURFACEFLINGER_FLAGS(FORCE_COMPILE_GRAPHITE_RENDERENGINE)
