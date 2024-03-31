@@ -33,7 +33,7 @@ public:
     RenderEngine();
     ~RenderEngine() override;
 
-    MOCK_METHOD1(primeCache, std::future<void>(bool));
+    MOCK_METHOD0(primeCache, std::future<void>());
     MOCK_METHOD1(dump, void(std::string&));
     MOCK_METHOD2(genTextures, void(size_t, uint32_t*));
     MOCK_METHOD2(deleteTextures, void(size_t, uint32_t const*));
