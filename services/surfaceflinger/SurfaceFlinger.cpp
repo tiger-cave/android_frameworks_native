@@ -871,6 +871,35 @@ void SurfaceFlinger::bootFinished() {
     }));
 }
 
+uint32_t SurfaceFlinger::getNewTexture() {
+    {
+        std::lock_guard lock(mTexturePoolMutex);
+        if (!mTexturePool.empty()) {
+            uint32_t name = mTexturePool.back();
+            mTexturePool.pop_back();
+            ATRACE_INT("TexturePoolSize", mTexturePool.size());
+            return name;
+        }
+
+        // The pool was too small, so increase it for the future.
+        ++mTexturePoolSize;
+    }
+
+    auto genTextures = [this] {
+        uint32_t name = 0;
+        getRenderEngine().genTextures(1, &name);
+        return name;
+    };
+    return std::this_thread::get_id() == mMainThreadId ? genTextures()
+                                                       : mScheduler->schedule(genTextures).get();
+}
+
+void SurfaceFlinger::deleteTextureAsync(uint32_t texture) {
+    std::lock_guard lock(mTexturePoolMutex);
+    mTexturePool.push_back(texture);
+    ATRACE_INT("TexturePoolSize", mTexturePool.size());
+}
+
 bool shouldUseGraphiteIfSupported() {
     return FlagManager::getInstance().graphite_renderengine() ||
             (FlagManager::getInstance().graphite_renderengine_preview_rollout() &&
@@ -3835,6 +3864,23 @@ void SurfaceFlinger::onCompositionPresented(PhysicalDisplayId pacesetterId,
     getRenderEngine().cleanupPostRender();
 #endif
 
+    {
+        std::lock_guard lock(mTexturePoolMutex);
+        if (mTexturePool.size() < mTexturePoolSize) {
+            const size_t refillCount = mTexturePoolSize - mTexturePool.size();
+            const size_t offset = mTexturePool.size();
+            mTexturePool.resize(mTexturePoolSize);
+            getRenderEngine().genTextures(refillCount, mTexturePool.data() + offset);
+            ATRACE_INT("TexturePoolSize", mTexturePool.size());
+        } else if (mTexturePool.size() > mTexturePoolSize) {
+            const size_t deleteCount = mTexturePool.size() - mTexturePoolSize;
+            const size_t offset = mTexturePoolSize;
+            getRenderEngine().deleteTextures(deleteCount, mTexturePool.data() + offset);
+            mTexturePool.resize(mTexturePoolSize);
+            ATRACE_INT("TexturePoolSize", mTexturePool.size());
+        }
+    }
+
     if (mNumTrustedPresentationListeners > 0) {
         // We avoid any reverse traversal upwards so this shouldn't be too expensive
         traverseLegacyLayers([&](Layer* layer) FTL_FAKE_GUARD(kMainThreadContext) {
@@ -6021,11 +6067,12 @@ status_t SurfaceFlinger::createLayer(LayerCreationArgs& args, gui::CreateSurface
     return result;
 }
 
-status_t SurfaceFlinger::createLayer(const LayerCreationArgs& args, sp<IBinder>* handle,
+status_t SurfaceFlinger::createLayer(LayerCreationArgs& args, sp<IBinder>* handle,
                                      sp<Layer>* outLayer) {
     if (checkLayerLeaks() != NO_ERROR) {
         return NO_MEMORY;
     }
+    args.textureName = getNewTexture();
     *outLayer = getFactory().createLayer(args);
     *handle = (*outLayer)->getHandle();
     return NO_ERROR;

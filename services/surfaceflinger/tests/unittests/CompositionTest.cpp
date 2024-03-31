@@ -582,6 +582,7 @@ struct BaseLayerProperties {
                     const renderengine::LayerSettings layer = layerSettings.back();
                     EXPECT_THAT(layer.source.buffer.buffer, Not(IsNull()));
                     EXPECT_THAT(layer.source.buffer.fence, Not(IsNull()));
+                    EXPECT_EQ(DEFAULT_TEXTURE_ID, layer.source.buffer.textureName);
                     EXPECT_EQ(true, layer.source.buffer.usePremultipliedAlpha);
                     EXPECT_EQ(false, layer.source.buffer.isOpaque);
                     EXPECT_EQ(0.0, layer.geometry.roundedCornersRadii.topLeft.x);
@@ -877,6 +878,7 @@ struct BufferLayerVariant : public BaseLayerVariant<LayerProperties> {
                 frontend::RequestedLayerState>(test, [test]() {
             LayerCreationArgs args(test->mFlinger.flinger(), sp<Client>(), "test-layer",
                                    LayerProperties::LAYER_FLAGS, LayerMetadata());
+            args.textureName = DEFAULT_TEXTURE_ID;
             auto legacyLayer = sp<Layer>::make(args);
             test->mFlinger.injectLegacyLayer(legacyLayer);
             return frontend::RequestedLayerState(args);

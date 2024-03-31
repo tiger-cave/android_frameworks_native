@@ -134,7 +134,9 @@ Layer::Layer(const surfaceflinger::LayerCreationArgs& args)
         mFlinger(sp<SurfaceFlinger>::fromExisting(args.flinger)),
         mName(base::StringPrintf("%s#%d", args.name.c_str(), sequence)),
         mWindowType(static_cast<WindowInfo::Type>(
-                args.metadata.getInt32(gui::METADATA_WINDOW_TYPE, 0))) {
+                args.metadata.getInt32(gui::METADATA_WINDOW_TYPE, 0))),
+        mLayerCreationFlags(args.flags),
+        mTextureName(args.textureName) {
     ALOGV("Creating Layer %s", getDebugName());
 
     mDrawingState.crop = {0, 0, -1, -1};
@@ -175,6 +177,9 @@ Layer::~Layer() {
         callReleaseBufferCallback(mDrawingState.releaseBufferListener,
                                   mBufferInfo.mBuffer->getBuffer(), mBufferInfo.mFrameNumber,
                                   mBufferInfo.mFence);
+    }
+    if (mTextureName != 0) {
+        mFlinger->deleteTextureAsync(mTextureName);
     }
     const int32_t layerId = getSequence();
     mFlinger->mTimeStats->onDestroy(layerId);
