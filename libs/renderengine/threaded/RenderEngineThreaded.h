@@ -56,6 +56,7 @@ public:
     ftl::Future<FenceResult> drawLayers(const DisplaySettings& display,
                                         const std::vector<LayerSettings>& layers,
                                         const std::shared_ptr<ExternalTexture>& buffer,
+                                        const bool useFramebufferCache,
                                         base::unique_fd&& bufferFence) override;
     ftl::Future<FenceResult> tonemapAndDrawGainmap(
             const std::shared_ptr<ExternalTexture>& hdr, base::borrowed_fd&& hdrFence,
@@ -81,6 +82,7 @@ protected:
                             const DisplaySettings& display,
                             const std::vector<LayerSettings>& layers,
                             const std::shared_ptr<ExternalTexture>& buffer,
+                            const bool useFramebufferCache,
                             base::unique_fd&& bufferFence) override;
     void tonemapAndDrawGainmapInternal(
             const std::shared_ptr<std::promise<FenceResult>>&& resultPromise,
