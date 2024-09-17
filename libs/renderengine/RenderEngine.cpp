@@ -16,6 +16,7 @@
 
 #include <renderengine/RenderEngine.h>
 
+#include "gl/GLESRenderEngine.h"
 #include "renderengine/ExternalTexture.h"
 #include "skia/GaneshVkRenderEngine.h"
 #include "skia/GraphiteVkRenderEngine.h"
@@ -35,23 +36,32 @@ namespace renderengine {
 std::unique_ptr<RenderEngine> RenderEngine::create(const RenderEngineCreationArgs& args) {
     threaded::CreateInstanceFactory createInstanceFactory;
 
-    ALOGD("%sRenderEngine with Skia%s Backend (%s)",
-          args.threaded == Threaded::Yes ? "Threaded " : "",
-          ftl::enum_string(args.graphicsApi).c_str(), ftl::enum_string(args.skiaBackend).c_str());
-
-    if (args.skiaBackend == SkiaBackend::Graphite) {
+    if (args.graphicsApi == GraphicsApi::GLES) {
+        ALOGD("%sRenderEngine with legacy GLES Backend",
+              args.threaded == Threaded::Yes ? "Threaded " : "");
         createInstanceFactory = [args]() {
-            return android::renderengine::skia::GraphiteVkRenderEngine::create(args);
+            return android::renderengine::gl::GLESRenderEngine::create(args);
         };
-    } else { // GANESH
-        if (args.graphicsApi == GraphicsApi::Vk) {
+    } else {
+        ALOGD("%sRenderEngine with Skia%s Backend (%s)",
+              args.threaded == Threaded::Yes ? "Threaded " : "",
+              ftl::enum_string(args.graphicsApi).c_str(),
+              ftl::enum_string(args.skiaBackend).c_str());
+
+        if (args.skiaBackend == SkiaBackend::Graphite) {
             createInstanceFactory = [args]() {
-                return android::renderengine::skia::GaneshVkRenderEngine::create(args);
+                return android::renderengine::skia::GraphiteVkRenderEngine::create(args);
             };
-        } else { // GL
-            createInstanceFactory = [args]() {
-                return android::renderengine::skia::SkiaGLRenderEngine::create(args);
-            };
+        } else { // GANESH
+            if (args.graphicsApi == GraphicsApi::Vk) {
+                createInstanceFactory = [args]() {
+                    return android::renderengine::skia::GaneshVkRenderEngine::create(args);
+                };
+            } else { // GL
+                createInstanceFactory = [args]() {
+                    return android::renderengine::skia::SkiaGLRenderEngine::create(args);
+                };
+            }
         }
     }
 
