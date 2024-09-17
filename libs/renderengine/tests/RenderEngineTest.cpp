@@ -134,6 +134,10 @@ public:
     bool typeSupported() override {
         return skia::SkiaVkRenderEngine::canSupportSkiaVkRenderEngine();
     }
+
+    bool apiSupported() override {
+        return skia::SkiaVkRenderEngine::canSupportSkiaVkRenderEngine();
+    }
 };
 
 class SkiaGLESRenderEngineFactory : public RenderEngineFactory {
