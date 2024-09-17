@@ -64,6 +64,7 @@ static void sSetupVulkanInterface() {
 
 bool RenderEngine::canSupport(GraphicsApi graphicsApi) {
     switch (graphicsApi) {
+        case GraphicsApi::GLES:
         case GraphicsApi::GL:
             return true;
         case GraphicsApi::VK: {
@@ -87,6 +88,7 @@ bool RenderEngine::canSupport(GraphicsApi graphicsApi) {
 
 void RenderEngine::teardown(GraphicsApi graphicsApi) {
     switch (graphicsApi) {
+        case GraphicsApi::GLES:
         case GraphicsApi::GL:
             break;
         case GraphicsApi::VK: {

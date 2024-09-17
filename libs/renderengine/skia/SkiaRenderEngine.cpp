@@ -416,7 +416,7 @@ void SkiaRenderEngine::ensureContextsCreated() {
 void SkiaRenderEngine::mapExternalTextureBuffer(const sp<GraphicBuffer>& buffer,
                                                   bool isRenderable) {
     // Only run this if RE is running on its own thread. This
-    // way the access to GL/VK operations is guaranteed to be happening on the
+    // way the access to GL operations is guaranteed to be happening on the
     // same thread.
     if (!isThreaded()) {
         return;

@@ -33,7 +33,7 @@
 #include <memory>
 
 /**
- * Allows to override the RenderEngine backend.
+ * Allows to set RenderEngine backend to GLES (default) or SkiaGL (NOT yet supported).
  */
 #define PROPERTY_DEBUG_RENDERENGINE_BACKEND "debug.renderengine.backend"
 
@@ -127,6 +127,7 @@ public:
     };
 
     enum class GraphicsApi {
+        GLES,
         GL,
         VK,
     };
