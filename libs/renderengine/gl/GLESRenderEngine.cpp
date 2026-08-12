@@ -1120,7 +1120,7 @@ void GLESRenderEngine::drawLayersInternal(
     std::unique_ptr<BindNativeBufferAsFramebuffer> fbo;
     // Gathering layers that requested blur, we'll need them to decide when to render to an
     // offscreen buffer, and when to render to the native buffer.
-    std::deque<const LayerSettings> blurLayers;
+    std::deque<LayerSettings> blurLayers;
     if (CC_LIKELY(mBlurFilter != nullptr)) {
         for (const auto& layer : layers) {
             if (layer.backgroundBlurRadius > 0) {

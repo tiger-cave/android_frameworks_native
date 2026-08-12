@@ -828,7 +828,7 @@ uint32_t SurfaceFlinger::getNewTexture() {
         if (!mTexturePool.empty()) {
             uint32_t name = mTexturePool.back();
             mTexturePool.pop_back();
-            ATRACE_INT("TexturePoolSize", mTexturePool.size());
+            SFTRACE_INT("TexturePoolSize", static_cast<int>(mTexturePool.size()));
             return name;
         }
 
@@ -848,7 +848,7 @@ uint32_t SurfaceFlinger::getNewTexture() {
 void SurfaceFlinger::deleteTextureAsync(uint32_t texture) {
     std::lock_guard lock(mTexturePoolMutex);
     mTexturePool.push_back(texture);
-    ATRACE_INT("TexturePoolSize", mTexturePool.size());
+    SFTRACE_INT("TexturePoolSize", static_cast<int>(mTexturePool.size()));
 }
 
 bool shouldUseGraphiteIfCompiledAndSupported() {
@@ -3416,13 +3416,13 @@ void SurfaceFlinger::onCompositionPresented(PhysicalDisplayId pacesetterId,
             const size_t offset = mTexturePool.size();
             mTexturePool.resize(mTexturePoolSize);
             getRenderEngine().genTextures(refillCount, mTexturePool.data() + offset);
-            ATRACE_INT("TexturePoolSize", mTexturePool.size());
+            SFTRACE_INT("TexturePoolSize", static_cast<int>(mTexturePool.size()));
         } else if (mTexturePool.size() > mTexturePoolSize) {
             const size_t deleteCount = mTexturePool.size() - mTexturePoolSize;
             const size_t offset = mTexturePoolSize;
             getRenderEngine().deleteTextures(deleteCount, mTexturePool.data() + offset);
             mTexturePool.resize(mTexturePoolSize);
-            ATRACE_INT("TexturePoolSize", mTexturePool.size());
+            SFTRACE_INT("TexturePoolSize", static_cast<int>(mTexturePool.size()));
         }
     }
 
