@@ -229,16 +229,16 @@ std::optional<RenderEngine::ContextPriority> GLESRenderEngine::createContextPrio
     }
 
     switch (args.contextPriority) {
-        case RenderEngine::ContextPriority::REALTIME:
+        case RenderEngine::ContextPriority::Realtime:
             if (gl::GLExtensions::getInstance().hasRealtimePriority()) {
-                return RenderEngine::ContextPriority::REALTIME;
+                return RenderEngine::ContextPriority::Realtime;
             } else {
                 ALOGI("Realtime priority unsupported, degrading gracefully to high priority");
-                return RenderEngine::ContextPriority::HIGH;
+                return RenderEngine::ContextPriority::High;
             }
-        case RenderEngine::ContextPriority::HIGH:
-        case RenderEngine::ContextPriority::MEDIUM:
-        case RenderEngine::ContextPriority::LOW:
+        case RenderEngine::ContextPriority::High:
+        case RenderEngine::ContextPriority::Medium:
+        case RenderEngine::ContextPriority::Low:
             return args.contextPriority;
         default:
             return std::nullopt;
@@ -310,7 +310,7 @@ std::unique_ptr<GLESRenderEngine> GLESRenderEngine::create(const RenderEngineCre
     // now figure out what version of GL did we actually get
     GlesVersion version = parseGlesVersion(extensions.getVersion());
 
-    LOG_ALWAYS_FATAL_IF(args.blurAlgorithm != BlurAlgorithm::NONE && version < GLES_VERSION_3_0,
+    LOG_ALWAYS_FATAL_IF(args.blurAlgorithm != BlurAlgorithm::None && version < GLES_VERSION_3_0,
         "Blurs require OpenGL ES 3.0. Please unset ro.surface_flinger.supports_background_blur");
 
     // initialize the renderer while GL is current
@@ -442,7 +442,7 @@ GLESRenderEngine::GLESRenderEngine(const RenderEngineCreationArgs& args, EGLDisp
         mFlushTracer = std::make_unique<FlushTracer>(this);
     }
 
-    if (args.blurAlgorithm != BlurAlgorithm::NONE) {
+    if (args.blurAlgorithm != BlurAlgorithm::None) {
         mBlurFilter = new BlurFilter(*this);
         checkErrors("BlurFilter creation");
     }
@@ -1120,7 +1120,7 @@ void GLESRenderEngine::drawLayersInternal(
     std::unique_ptr<BindNativeBufferAsFramebuffer> fbo;
     // Gathering layers that requested blur, we'll need them to decide when to render to an
     // offscreen buffer, and when to render to the native buffer.
-    std::deque<const LayerSettings> blurLayers;
+    std::deque<LayerSettings> blurLayers;
     if (CC_LIKELY(mBlurFilter != nullptr)) {
         for (const auto& layer : layers) {
             if (layer.backgroundBlurRadius > 0) {
@@ -1664,16 +1664,16 @@ EGLContext GLESRenderEngine::createEglContext(EGLDisplay display, EGLConfig conf
     if (contextPriority) {
         contextAttributes.push_back(EGL_CONTEXT_PRIORITY_LEVEL_IMG);
         switch (*contextPriority) {
-            case ContextPriority::REALTIME:
+            case ContextPriority::Realtime:
                 contextAttributes.push_back(EGL_CONTEXT_PRIORITY_REALTIME_NV);
                 break;
-            case ContextPriority::MEDIUM:
+            case ContextPriority::Medium:
                 contextAttributes.push_back(EGL_CONTEXT_PRIORITY_MEDIUM_IMG);
                 break;
-            case ContextPriority::LOW:
+            case ContextPriority::Low:
                 contextAttributes.push_back(EGL_CONTEXT_PRIORITY_LOW_IMG);
                 break;
-            case ContextPriority::HIGH:
+            case ContextPriority::High:
             default:
                 contextAttributes.push_back(EGL_CONTEXT_PRIORITY_HIGH_IMG);
                 break;

@@ -449,8 +449,9 @@ void ProcessState::spawnPooledThread(bool isMain)
 }
 
 status_t ProcessState::setThreadPoolMaxThreadCount(size_t maxThreads) {
-    if (mThreadPoolStarted && maxThreads < mMaxThreads) {
-        ALOGW("Shrinking Binder threadpool after it has started: %zu -> %zu", mMaxThreads,
+    const size_t currentMaxThreads = mMaxThreads.load();
+    if (mThreadPoolStarted && maxThreads < currentMaxThreads) {
+        ALOGW("Shrinking Binder threadpool after it has started: %zu -> %zu", currentMaxThreads,
               maxThreads);
     }
     status_t result = NO_ERROR;

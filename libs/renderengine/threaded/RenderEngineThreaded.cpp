@@ -324,7 +324,7 @@ ftl::Future<FenceResult> RenderEngineThreaded::drawLayers(
     int fd = bufferFence.release();
     {
         std::lock_guard lock(mThreadMutex);
-    mFunctionCalls.push(
+        mFunctionCalls.push(
                 [resultPromise, display, layers, buffer, useFramebufferCache,
                  fd](renderengine::RenderEngine& instance) {
                     SFTRACE_NAME("REThreaded::drawLayers");
@@ -346,7 +346,6 @@ ftl::Future<FenceResult> RenderEngineThreaded::tonemapAndDrawGainmap(
     std::future<FenceResult> resultFuture = resultPromise->get_future();
     {
         std::lock_guard lock(mThreadMutex);
-        mNeedsPostRenderCleanup = true;
         mFunctionCalls.push([resultPromise, hdr, hdrFence = std::move(hdrFence), hdrSdrRatio,
                              dataspace, sdr,
                              gainmap](renderengine::RenderEngine& instance) mutable {
