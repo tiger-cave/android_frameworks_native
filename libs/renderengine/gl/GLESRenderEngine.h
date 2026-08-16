@@ -109,13 +109,12 @@ protected:
                             const std::vector<LayerSettings>& layers,
                             const std::shared_ptr<ExternalTexture>& buffer,
                             const bool useFramebufferCache, base::unique_fd&& bufferFence) override;
-    void drawGainmapInternal(const std::shared_ptr<std::promise<FenceResult>>&& resultPromise,
-                             const std::shared_ptr<ExternalTexture>& sdr,
-                             base::borrowed_fd&& sdrFence,
-                             const std::shared_ptr<ExternalTexture>& hdr,
-                             base::borrowed_fd&& hdrFence, float hdrSdrRatio,
-                             ui::Dataspace dataspace,
-                             const std::shared_ptr<ExternalTexture>& gainmap) override;
+    void tonemapAndDrawGainmapInternal(
+            const std::shared_ptr<std::promise<FenceResult>>&& resultPromise,
+            const std::shared_ptr<ExternalTexture>& hdr, base::borrowed_fd&& hdrFence,
+            float hdrSdrRatio, ui::Dataspace dataspace,
+            const std::shared_ptr<ExternalTexture>& sdr,
+            const std::shared_ptr<ExternalTexture>& gainmap) override;
 
 private:
     friend class BindNativeBufferAsFramebuffer;

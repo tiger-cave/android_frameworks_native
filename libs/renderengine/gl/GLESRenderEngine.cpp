@@ -140,6 +140,14 @@ private:
 using base::StringAppendF;
 using ui::Dataspace;
 
+static float getLegacyCornerRadius(const ::android::renderengine::Geometry& geometry) {
+    // The restored GLES backend supports one uniform radius. SurfaceFlinger historically supplied
+    // a uniform value here, so use the top-left radius when adapting the per-corner A16 geometry.
+    return (geometry.roundedCornersRadii.topLeft.x +
+            geometry.roundedCornersRadii.topLeft.y) /
+            2.0f;
+}
+
 static status_t selectConfigForAttribute(EGLDisplay dpy, EGLint const* attrs, EGLint attribute,
                                          EGLint wanted, EGLConfig* outConfig) {
     EGLint numConfigs = -1, n = 0;
@@ -279,12 +287,12 @@ std::unique_ptr<GLESRenderEngine> GLESRenderEngine::create(const RenderEngineCre
     EGLContext protectedContext = EGL_NO_CONTEXT;
     if (args.enableProtectedContext && extensions.hasProtectedContent()) {
         protectedContext =
-                createEglContext(display, config, nullptr, priority, Protection::PROTECTED);
+                createEglContext(display, config, nullptr, priority, Protection::Protected);
         ALOGE_IF(protectedContext == EGL_NO_CONTEXT, "Can't create protected context");
     }
 
     EGLContext ctxt =
-            createEglContext(display, config, protectedContext, priority, Protection::UNPROTECTED);
+            createEglContext(display, config, protectedContext, priority, Protection::Unprotected);
 
     // if can't create a GL context, we can only abort.
     LOG_ALWAYS_FATAL_IF(ctxt == EGL_NO_CONTEXT, "EGLContext creation failed");
@@ -292,7 +300,7 @@ std::unique_ptr<GLESRenderEngine> GLESRenderEngine::create(const RenderEngineCre
     EGLSurface stub = EGL_NO_SURFACE;
     if (!extensions.hasSurfacelessContext()) {
         stub = createStubEglPbufferSurface(display, config, args.pixelFormat,
-                                           Protection::UNPROTECTED);
+                                           Protection::Unprotected);
         LOG_ALWAYS_FATAL_IF(stub == EGL_NO_SURFACE, "can't create stub pbuffer");
     }
     EGLBoolean success = eglMakeCurrent(display, stub, stub, ctxt);
@@ -303,7 +311,7 @@ std::unique_ptr<GLESRenderEngine> GLESRenderEngine::create(const RenderEngineCre
     EGLSurface protectedStub = EGL_NO_SURFACE;
     if (protectedContext != EGL_NO_CONTEXT && !extensions.hasSurfacelessContext()) {
         protectedStub = createStubEglPbufferSurface(display, config, args.pixelFormat,
-                                                    Protection::PROTECTED);
+                                                    Protection::Protected);
         ALOGE_IF(protectedStub == EGL_NO_SURFACE, "can't create protected stub pbuffer");
     }
 
@@ -519,11 +527,11 @@ std::future<void> GLESRenderEngine::primeCache(PrimeCacheConfig /*config*/) {
     return {};
 }
 
-void GLESRenderEngine::drawGainmapInternal(
+void GLESRenderEngine::tonemapAndDrawGainmapInternal(
         const std::shared_ptr<std::promise<FenceResult>>&& resultPromise,
-        const std::shared_ptr<ExternalTexture>& /*sdr*/, base::borrowed_fd&& /*sdrFence*/,
         const std::shared_ptr<ExternalTexture>& /*hdr*/, base::borrowed_fd&& /*hdrFence*/,
         float /*hdrSdrRatio*/, ui::Dataspace /*dataspace*/,
+        const std::shared_ptr<ExternalTexture>& /*sdr*/,
         const std::shared_ptr<ExternalTexture>& /*gainmap*/) {
     // The legacy GLES backend predates gainmap generation. Keep the modern API available and
     // report the unsupported operation instead of making the restored backend abstract.
@@ -930,8 +938,7 @@ void GLESRenderEngine::handleRoundedCorners(const DisplaySettings& display,
 
     // Finally, we cut the layer into 3 parts, with top and bottom parts having rounded corners
     // and the middle part without rounded corners.
-    const int32_t radius = ceil(
-            (layer.geometry.roundedCornersRadius.x + layer.geometry.roundedCornersRadius.y) / 2.0);
+    const int32_t radius = ceil(getLegacyCornerRadius(layer.geometry));
     const Rect topRect(bounds.left, bounds.top, bounds.right, bounds.top + radius);
     setScissor(topRect);
     drawMesh(mesh);
@@ -1275,9 +1282,7 @@ void GLESRenderEngine::drawLayersInternal(
 
         const half3 solidColor = layer.source.solidColor;
         const half4 color = half4(solidColor.r, solidColor.g, solidColor.b, layer.alpha);
-        const float radius =
-                (layer.geometry.roundedCornersRadius.x + layer.geometry.roundedCornersRadius.y) /
-                2.0f;
+        const float radius = getLegacyCornerRadius(layer.geometry);
         // Buffer sources will have a black solid color ignored in the shader,
         // so in that scenario the solid color passed here is arbitrary.
         setupLayerBlending(usePremultipliedAlpha, isOpaque, disableTexture, color, radius);
@@ -1679,7 +1684,7 @@ EGLContext GLESRenderEngine::createEglContext(EGLDisplay display, EGLConfig conf
                 break;
         }
     }
-    if (protection == Protection::PROTECTED) {
+    if (protection == Protection::Protected) {
         contextAttributes.push_back(EGL_PROTECTED_CONTENT_EXT);
         contextAttributes.push_back(EGL_TRUE);
     }
@@ -1714,7 +1719,7 @@ EGLSurface GLESRenderEngine::createStubEglPbufferSurface(EGLDisplay display, EGL
     attributes.push_back(1);
     attributes.push_back(EGL_HEIGHT);
     attributes.push_back(1);
-    if (protection == Protection::PROTECTED) {
+    if (protection == Protection::Protected) {
         attributes.push_back(EGL_PROTECTED_CONTENT_EXT);
         attributes.push_back(EGL_TRUE);
     }
