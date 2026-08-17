@@ -69,14 +69,6 @@ inline const char* boolToString(bool b) {
     return b ? "true" : "false";
 }
 
-timespec timespecFromNanos(nsecs_t duration) {
-    timespec result;
-    int64_t nsecPerSec = 1'000'000'000;
-    result.tv_sec = duration / nsecPerSec;
-    result.tv_nsec = duration % nsecPerSec;
-    return result;
-}
-
 } // namespace
 
 namespace android {
@@ -1459,16 +1451,22 @@ BufferReleaseReader::BufferReleaseReader(
 
 status_t BufferReleaseReader::readBlocking(ReleaseCallbackId& outId, sp<Fence>& outFence,
                                            uint32_t& outMaxAcquiredBufferCount, nsecs_t timeout) {
-    std::optional<timespec> timespec;
-    if (timeout >= 0) {
-        timespec = timespecFromNanos(timeout);
+    int timeoutMs = -1;
+    if (timeout == 0) {
+        timeoutMs = 0;
+    } else if (timeout > 0) {
+        constexpr int64_t kNanosPerMillisecond = 1'000'000;
+        timeoutMs = timeout < kNanosPerMillisecond
+                ? 1
+                : static_cast<int>(std::chrono::round<std::chrono::milliseconds>(
+                                           std::chrono::nanoseconds{timeout})
+                                           .count());
     }
 
     epoll_event event{};
     int eventCount;
     do {
-        eventCount = epoll_pwait2(mEpollFd.get(), &event, 1 /*maxevents*/,
-                                  timespec ? &(*timespec) : nullptr, nullptr /*sigmask*/);
+        eventCount = epoll_wait(mEpollFd.get(), &event, 1 /*maxevents*/, timeoutMs);
     } while (eventCount == -1 && errno == EINTR);
 
     if (eventCount == -1) {
